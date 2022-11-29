@@ -1,5 +1,5 @@
 #include "get_next_line.h"
-#include <stdio.h>
+
 int slen(const char *str)
 {
 	int i;

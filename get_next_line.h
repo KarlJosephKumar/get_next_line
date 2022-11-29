@@ -1,8 +1,8 @@
 #ifndef GET_NEXT_LINE_H
 # define GET_NEXT_LINE_H
 
-#ifndef BUFF_SIZE
-#  define BUFF_SIZE 32
+# ifndef BUFF_SIZE
+#  define BUFF_SIZE 1000
 #endif
 
 #include <unistd.h>
@@ -15,7 +15,6 @@ typedef struct	variables
 	char	*ret;
 	char	buff[BUFF_SIZE+1];
 	char	c;
-	char	*temp;
 }				variable;
 
 char	*get_next_line(int fd);

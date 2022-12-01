@@ -15,10 +15,11 @@ typedef struct	variables
 	char	*ret;
 	char	*buff;
 	char	*temp;
+	int		k;
 }				variable;
 
 char	*get_next_line(int fd);
-char	*get_line(int fd, variable var, char *holder);
+char	*get_line(int fd, variable var);
 char	*return_from_holder(variable var, char *holder);
 char	*get_next_line_utils(int fd);
 int	 	slen(char *str);

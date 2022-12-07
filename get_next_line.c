@@ -2,43 +2,66 @@
 #include <stdio.h>
 #include <fcntl.h>
 
+
+char	*ft_join(char *buff, char *holder)
+{
+	char	*temp;
+
+	if(!holder)
+	{
+		holder = malloc(1);
+		*holder = '\0';
+	}
+	temp = ft_strjoin(holder, buff);
+	free(buff);
+	return (temp);
+}
+
 char	*update_holder(variable var, char *holder)
 {
-	int k;
-	
-	k = slen(holder);
-	while(*holder++ != '\n')
+	var.k = slen(holder);
+	var.i = 0;
+	while(holder[var.i] != '\n' && var.i < var.k)
 		var.i++;
-	var.temp = (char *) malloc (sizeof(char) * slen(holder) + 1 - var.i);
-	if (var.temp == 0)
-		return holder -1;
+	if(holder[var.i] == '\n')
+		var.i++;
+	var.temp = (char *) malloc (sizeof(char) * slen(holder) - var.i + 1);
 	if (!var.temp)
 		return (NULL);
-	var.i = 0;
-	while (*holder != '\0')
-		var.temp[var.i++] = *holder++;
-	var.temp[var.i++] = '\n';
-	var.temp[var.i] = '\0';
-	free(holder-k);
+	while (holder[var.i] != '\0')
+		var.temp[var.j++] = holder[var.i++];
+	var.temp[var.j] = '\0';
+	free(holder);
 	holder = (char *) malloc (sizeof(char) * slen(var.temp) + 1);
 	var.i = 0;
-	while (*var.temp != '\0')
-		holder[var.i++] = *var.temp++;
-	free(var.temp-var.i);
+	while (var.temp[var.i] != '\0')
+		holder[var.i++] = var.temp[var.i];
+	holder[var.i] = '\0';
+	free(var.temp);
 	return (holder);
 }
 
-char	*return_from_holder(variable var, char *holder)
+char	*get_line(variable var, char *holder)
 {
 	var.i = 0;
 	var.j = 0;
+	if (holder[var.i] == '\0')
+	{
+		free(holder);
+		return (NULL);
+	}
 	while (holder[var.i] != '\0')
 	{
 		if (holder[var.i] == '\n')
 		{
-			var.ret = (char *) malloc (sizeof(char) * var.i + 1);
-			while (*holder != '\n')
-				var.ret[var.j++] = *holder++;
+			var.ret = (char *) malloc (sizeof(char) * var.i + 2);
+			if (!var.ret)
+			{
+				free(holder);
+				return (NULL);
+			}
+			while (holder[var.j] != '\n')
+				var.ret[var.j++] = holder[var.j];
 			var.ret[var.j++] = '\n';
 			var.ret[var.j] = '\0';
 			return (var.ret);
@@ -48,60 +71,76 @@ char	*return_from_holder(variable var, char *holder)
 	return (var.ret);
 }
 
-char	*get_line(int fd, variable var)
+char	*read_buffer(int fd, variable var, char *holder)
 {
-	static char	*holder;
-
-	while(read(fd, var.buff, BUFFER_SIZE) != 0)
+	var.bytes = 1;
+	while (var.bytes > 0)
 	{
-		var.i = 0;
-		while (var.i < BUFFER_SIZE)
+		var.buff = (char *) malloc (sizeof(char) * BUFFER_SIZE + 1);
+		if (var.buff == NULL)
+			return (NULL);
+		var.bytes = read(fd, var.buff, BUFFER_SIZE);
+		if (var.bytes < 0)
 		{
-			var.i++;
-			if (var.buff[var.i] == '\n')
-			{
-				holder = (char *) malloc (sizeof(char) * BUFFER_SIZE + 1);
-				while(var.j < BUFFER_SIZE)
-					holder[var.j++] = var.buff[var.j];
-				holder[var.j] = '\0';
-				free(var.buff);
-				var.ret = return_from_holder(var, holder);
-				return (var.ret);
-			}
+			free(var.buff);
+			return (NULL);
+		}
+		var.buff[var.bytes] = '\0'; 
+		if (ft_strchr(var.buff, '\n') == NULL)
+			holder = ft_join(var.buff, holder);
+		else
+		{
+			holder = ft_join(var.buff, holder);
+			break ;
 		}
 	}
-	if (holder != NULL)
-	{
-		holder = update_holder(var, holder);
-		var.ret = return_from_holder(var, holder);
-		return var.ret;
-	}
-	return (NULL);
+	return (holder);
 }
 
 char	*get_next_line(int fd)
 {
 	variable	var;
-
+	static char	*holder;
+	
 	var.i = 0;
 	var.j = 0;
-	var.ret = NULL;
-	var.buff = (char *) malloc (sizeof(char) * BUFFER_SIZE + 1);
-	if (fd == -1 || !fd || !var.buff)
+	if (fd < 0 || !fd || read(fd, 0, 0) < 0)
 		return (NULL);
-	var.ret = get_line(fd, var);
-	return var.ret;
+	if (!holder || ft_strchr(holder, '\n') == NULL)
+		holder = read_buffer(fd, var, holder);
+	if (holder[var.i] == '\0')
+	{
+		free(holder);
+		return (NULL);
+	}
+	if (holder && ft_strchr(holder, '\n') == NULL)
+	{
+		var.ret = (char *) malloc (sizeof(char) * slen(holder) + 1);
+		while (holder[var.i] != '\0')
+			var.ret[var.i++] = holder[var.i];
+		var.ret[var.i] = '\0';
+		holder = update_holder(var, holder);
+		free(holder);
+		return (var.ret);
+	}
+	else
+		var.ret = get_line(var, holder);
+	if (var.ret && holder[var.i] != '\0')
+		holder = update_holder(var, holder);
+	else if (holder[var.i] == '\0')
+		return (NULL);
+	return (var.ret);
 }
 
-int main()
-{
-	int fd = open("test.txt", O_RDONLY);
-	int i;
+// int main()
+// {
+// 	int fd = open("test.txt", O_RDONLY);
+// 	int i;
 
-	i = 0;
+// 	i = 0;
 
-	while (i++ < 4)
-		printf("%s", get_next_line(fd));
+// 	while (i++ < 3)
+// 		printf("%s", get_next_line(fd));
 
-	return(0);
-}
+// 	return(0);
+// }

@@ -2,7 +2,7 @@
 # define GET_NEXT_LINE_H
 
 # ifndef BUFFER_SIZE
-#  define BUFFER_SIZE 42
+#  define BUFFER_SIZE 5
 #endif
 
 #include <unistd.h>
@@ -15,13 +15,16 @@ typedef struct	variables
 	char	*ret;
 	char	*buff;
 	char	*temp;
+	int		bytes;
 	int		k;
 }				variable;
 
 char	*get_next_line(int fd);
-char	*get_line(int fd, variable var);
-char	*return_from_holder(variable var, char *holder);
+char	*read_buffer(int fd, variable var, char *holder);
+char	*get_line(variable var, char *holder);
+char	*update_holder(variable var, char *holder);
 char	*get_next_line_utils(int fd);
 int	 	slen(char *str);
-char	*ft_strdup(char *src);
+char	*ft_strjoin(char const *s1, char const *s2);
+char	*ft_strchr(const char *s, int c);
 #endif

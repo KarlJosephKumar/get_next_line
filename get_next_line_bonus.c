@@ -1,16 +1,16 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   get_next_line.c                                    :+:      :+:    :+:   */
+/*   get_next_line_bonus.c                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: kakumar <kakumar@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/11 16:02:42 by kakumar           #+#    #+#             */
-/*   Updated: 2022/12/16 15:18:11 by kakumar          ###   ########.fr       */
+/*   Updated: 2022/12/16 15:19:17 by kakumar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "get_next_line.h"
+#include "get_next_line_bonus.h"
 #include <fcntl.h>
 
 char	*ft_join(char *buff, char *holder)
@@ -107,24 +107,25 @@ char	*read_buffer(int fd, t_variable var, char *holder)
 char	*get_next_line(int fd)
 {
 	t_variable	var;
-	static char	*holder;
+	static char	*holder[10240];
 
 	var.i = 0;
 	var.j = 0;
 	if (fd < 0 || BUFFER_SIZE <= 0 || read(fd, 0, 0) < 0)
 		return (NULL);
-	holder = read_buffer(fd, var, holder);
-	if (!holder)
+	holder[fd] = read_buffer(fd, var, holder[fd]);
+	if (!holder[fd])
 		return (NULL);
-	if (holder[var.i] != '\0' && holder && ft_strchr(holder, '\n') == NULL)
+	if (holder[fd][var.i] != '\0' && holder[fd] &&
+			ft_strchr(holder[fd], '\n') == NULL)
 	{
-		var.ret = ft_calloc(slen(holder) + 1, sizeof(char));
-		var.ret = ft_join(holder, var.ret);
-		holder = update_holder(var, holder);
+		var.ret = ft_calloc(slen(holder[fd]) + 1, sizeof(char));
+		var.ret = ft_join(holder[fd], var.ret);
+		holder[fd] = update_holder(var, holder[fd]);
 		return (var.ret);
 	}
 	else
-		var.ret = get_line(var, holder);
-	holder = update_holder(var, holder);
+		var.ret = get_line(var, holder[fd]);
+	holder[fd] = update_holder(var, holder[fd]);
 	return (var.ret);
 }
